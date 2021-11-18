@@ -124,14 +124,14 @@ class SValuesData:
             x.append(i * voxelSize)
             S.append(self.GetSValue(voxelSize, 0, 0, i, tissue, source, physics))
         if source == 'Lanconelli':
-            plt.errorbar(x, S, marker=mk, label="Voxel size = " + str(voxelSize) + " mm - Lanconelli et al.", 
+            plt.errorbar(x, S, marker=mk, label="Lanconelli et al.", 
                         c=color, ls=linestyle)
         if source == 'TOPAS':
             errorS = []
             for i in range(0, 6):
                 errorS.append(self.GetStdSValue(voxelSize, i, 0, 0, tissue, physics))
             plt.errorbar(x, S, errorS, fmt=mk, c=color, markersize=5, 
-                         label="Voxel size = " + str(voxelSize) + " mm - TOPAS-" + physics, ls=linestyle)
+                         label="TOPAS-" + physics, ls=linestyle)
         plt.xlabel('Distance (mm)')
         plt.ylabel('S value (mGy/(MBq s))')
         plt.xlim([-max(x)*0.05, max(x)*1.05])
@@ -259,17 +259,76 @@ class SValueDatasetTOPAS:
             self.StdSvalues = errorDValues / cumAct * 1000
         
 
-def RunTests():
-    y90 = SValuesData('Y90')
-    vsizes = [2.21, 2.33, 2.4, 3.0, 3.59, 3.9, 4.0, 4.42, 4.8, 5.0, 6.0, 6.8, 9.28]
-    vsizes = [2.21, 9.28]
-    colors = [[[0,0,1,0.5], [0,0,1,0.75], [0,0,1,1]], [[1,0,0,0.5], [1,0,0,0.75], [1,0,0,1]]]
-    lss = [':', '--', '-']
-    for i, vs in enumerate(vsizes):
-        y90.plot1D(vs, 'Soft', 'Lanconelli', '', colors[i][0], '.', lss[0])
-        y90.plot1D(vs, 'Soft', 'TOPAS', 'standard', colors[i][1], '*', lss[1])
-        y90.plot1D(vs, 'Soft', 'TOPAS', 'option4', colors[i][2], 'd', lss[2])
-    plt.legend()
-    plt.grid()
+class PlotsForPapers: 
+    def __init__(self):
+        self.y90 = SValuesData('Y90')
+        #self.PlotsSvalues()
+        self.PlotOrPrintDifferences()
+    
+    def PlotsSvalues(self):
+        vsizes = [2.21, 2.33, 2.4, 3.0, 3.59, 3.9, 4.0, 4.42, 4.8, 5.0, 6.0, 6.8, 9.28]
+        vsizes = [2.21, 5.0, 9.28]
+        colors = [[0,0,0,0.5], [0,0,0,0.75], [0,0,0,1]]
+        lss = [':', '--', '-']
+        for i, vs in enumerate(vsizes):
+            plt.figure()
+            fig = plt.gcf()
+            ax = plt.gca()
+            fig.set_size_inches(4,6) # Three figures
+            self.y90.plot1D(vs, 'Soft', 'Lanconelli', '', colors[0], '.', lss[0])
+            self.y90.plot1D(vs, 'Soft', 'TOPAS', 'standard', colors[1], '*', lss[1])
+            self.y90.plot1D(vs, 'Soft', 'TOPAS', 'option4', colors[2], 'd', lss[2])
+            plt.grid()
+            plt.tight_layout(rect=[0.025,0,1.02,0.975])
+            fntsize = 14
+            plt.title("Voxel size = " + str(vs) + " mm", fontsize=fntsize)
+            ax.xaxis.label.set_fontsize(fntsize)
+            ax.yaxis.label.set_fontsize(fntsize)
+            plt.yticks(fontsize=fntsize)
+            plt.xticks(fontsize=fntsize)
+            if i == 0:
+                ax.legend(loc='lower left', fancybox=True, shadow=True, prop={"size":fntsize})
+            else:
+                ax.legend(bbox_to_anchor=(1.02, 1.02), loc='upper right', fancybox=True, shadow=True, prop={"size":fntsize})
+            
+    def PlotOrPrintDifferences(self, plot = False, printing = True):
+        vsizes = [2.21, 5.0, 9.28]
+        for i, vs in enumerate(vsizes):
+            x = []
+            SL = [] # Lanconelli
+            STs = [] # Topas standard
+            STo4 = [] # Topas opt4
+            for j in range(0, 6):
+                x.append(j * vs)
+                SL.append(self.y90.GetSValue(vs, 0, 0, j, 'Soft', 'Lanconelli'))
+                STs.append(self.y90.GetSValue(vs, 0, 0, j, 'Soft', 'TOPAS', 'standard'))
+                STo4.append(self.y90.GetSValue(vs, 0, 0, j, 'Soft', 'TOPAS', 'option4'))
+            difL = np.array(SL) - np.array(STo4)
+            difL = difL / np.array(STo4) * 100
+            difTs = np.array(STs) - np.array(STo4)
+            difTs = difTs / np.array(STo4) * 100
+            if plot: 
+                plt.figure()
+                fig = plt.gcf()
+                ax = plt.gca()
+                fig.set_size_inches(4,3) # Three figures
+                plt.tight_layout(rect=[0.03,0.0,1.0,1.0])
+                fntsize = 12
+                ax.xaxis.label.set_fontsize(fntsize)
+                ax.yaxis.label.set_fontsize(fntsize)
+                plt.yticks(fontsize=fntsize)
+                plt.xticks(fontsize=fntsize)
+                
+                plt.errorbar(x, difL, marker='.', label="Dif (Lanconelli et al. - TOPAS option4)", 
+                             c=[0,0,0,0.5], ls='--')
+                plt.errorbar(x, difTs, marker='*', label="Dif (TOPAS standard - TOPAS option4)", 
+                             c=[0,0,0,0.75], ls='-')
+                
+                plt.xlabel('Distance (mm)')
+                plt.ylabel('Dif (%)')
+                plt.xlim([-max(x)*0.05, max(x)*1.05])
+            if printing:
+                print(difL)
+                print(difTs)
 
-RunTests()
+PlotsForPapers()
