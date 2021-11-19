@@ -330,5 +330,3 @@ class PlotsForPapers:
             if printing:
                 print(difL)
                 print(difTs)
-
-PlotsForPapers()
