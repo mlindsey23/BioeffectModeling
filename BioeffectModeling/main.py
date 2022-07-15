@@ -1,5 +1,4 @@
-from BioeffectModeling import *
-
+from MIRDCalculation_BED.BioeffectModeling.BEDCalculator import *
 
 ### USER PARAMETERS ###
 
@@ -26,4 +25,3 @@ nmpath = ''
 ### MAIN ###
 
 GetBEDinDICOM(basepath, dosepath, structpath, HighestVoxelValue, ctpath, nmpath)
-
