@@ -25,5 +25,5 @@ nmpath = ''
 
 ### MAIN ###
 
-GetBEDinDICOM(basepath, dosepath, structpath, ctpath, nmpath, HighestVoxelValue)
+GetBEDinDICOM(basepath, dosepath, structpath, HighestVoxelValue, ctpath, nmpath)
 
