@@ -14,7 +14,7 @@ from BioeffectModeling import ROI_Values
 # Note: Only includes branches for Normal Liver, Normal Lungs, and other
 # That's all I could find in the RTSTRUCT files I tested, but simple to add more
 
-def GetBEDinDICOM(basepath, dosepath, structpath, ct_path = '', nm_path = '', HighestPixelValue = 1):
+def GetBEDinDICOM(basepath, dosepath, structpath, ct_path = '', nm_path = '', HighestVoxelValue):
     if ct_path == '':
         ctpath = basepath + '/CT/'
     else:
@@ -32,7 +32,7 @@ def GetBEDinDICOM(basepath, dosepath, structpath, ct_path = '', nm_path = '', Hi
         BEDimg3D = np.zeros(calc.activityObject.img3D.shape)
 
     calc.BEDCalculator(BEDimg3D)
-    BEDimg3D = BEDimg3D / np.max(BEDimg3D) * HighestPixelValue
+    BEDimg3D = BEDimg3D / np.max(BEDimg3D) * HighestVoxelValue
     calc.WriteRTDoseCT(BEDimg3D)
     print("End BED Calculation.")
 
