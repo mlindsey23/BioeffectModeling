@@ -14,7 +14,7 @@ from BioeffectModeling import ROI_Values
 # Note: Only includes branches for Normal Liver, Normal Lungs, and other
 # That's all I could find in the RTSTRUCT files I tested, but simple to add more
 
-def GetBEDinDICOM(basepath, dosepath, structpath, ct_path = '', nm_path = '', HighestVoxelValue):
+def GetBEDinDICOM(basepath, dosepath, structpath, HighestVoxelValue, ct_path = '', nm_path = ''):
     if ct_path == '':
         ctpath = basepath + '/CT/'
     else:
