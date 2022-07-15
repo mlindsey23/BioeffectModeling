@@ -8,7 +8,7 @@ Output -> RTDOSE
 import numpy as np
 from datetime import datetime
 from DICOM_RT import DicomPatient as dcmpat
-from MIRDCalculation_BED.BioeffectModeling import ROI_Values
+from MIRDCalculation_BED.BioeffectModeling.ROI_Values import *
 
 
 # Note: Only includes branches for Normal Liver, Normal Lungs, and other
