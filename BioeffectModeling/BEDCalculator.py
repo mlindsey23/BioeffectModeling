@@ -46,17 +46,22 @@ class BioeffectCalculator(dcmpat.PatientCT, dcmpat.Patient3DActivity):
         self.ctObject.LoadStructures(structpath)
 
     def BEDCalculator(self, BEDimg3D):
-        # CALCULATE BED
+            di = round(self.ctObject.img3D.shape[0]/self.activityObject.img3D.shape[0])
+            dj = round(self.ctObject.img3D.shape[1]/self.activityObject.img3D.shape[1])
             for i in range(self.activityObject.img3D.shape[0]):
                 prog = i/self.activityObject.img3D.shape[0]*100
                 print("Calculating BED... (" + str(round(prog,1))+"%)")
                 for j in range(self.activityObject.img3D.shape[1]): 
                     if self.ctObject.img3D.shape[2] < self.activityObject.img3D.shape[2]:
                         for k in range(self.ctObject.img3D.shape[2]):
-                            if self.ctObject.structures3D['Liver'][i,j,k] == True :
-                                Trep = Trep_Normal
-                                AlphaBeta = AlphaBeta_NLiver
-                            elif self.ctObject.structures3D['Lung_L'][i,j,k] == True or self.ctObject.structures3D['Lung_R'][i,j,k] == True :
+                            if self.ctObject.structures3D['Liver'][i*di,j*dj,k] == True :
+                                if self.ctObject.structures3D['All Tumors (Left Lobe)'][i*di,j*dj,k] == True or self.ctObject.structures3D['All Tumors (Right Lobe)'][i*di,j*dj,k] == True:
+                                    Trep = Trep_Tumor
+                                    AlphaBeta = AlphaBeta_TLiver
+                                else: 
+                                    Trep = Trep_Normal
+                                    AlphaBeta = AlphaBeta_NLiver
+                            elif self.ctObject.structures3D['Lung_L'][i*di,j*dj,k] == True or self.ctObject.structures3D['Lung_R'][i*di,j*dj,k] == True :
                                 Trep = Trep_Normal
                                 AlphaBeta = AlphaBeta_NLung
                             else :
@@ -65,10 +70,14 @@ class BioeffectCalculator(dcmpat.PatientCT, dcmpat.Patient3DActivity):
                             BEDimg3D[i,j,k] = self.activityObject.img3D[i,j,k] * (1 + (( self.activityObject.img3D[i,j,k] * Trep) / (AlphaBeta * (Trep + RadionuclideHalfLife))))
                     else:
                         for k in range(self.activityObject.img3D.shape[2]):
-                            if self.ctObject.structures3D['Liver'][i,j,k] == True :
-                                Trep = Trep_Normal
-                                AlphaBeta = AlphaBeta_NLiver
-                            elif self.ctObject.structures3D['Lung_L'][i,j,k] == True or self.ctObject.structures3D['Lung_R'][i,j,k] == True :
+                            if self.ctObject.structures3D['Liver'][i*di,j*dj,k] == True :
+                                if self.ctObject.structures3D['All Tumors (Left Lobe)'][i*di,j*dj,k] == True or self.ctObject.structures3D['All Tumors (Right Lobe)'][i*di,j*dj,k] == True:
+                                    Trep = Trep_Tumor
+                                    AlphaBeta = AlphaBeta_TLiver
+                                else: 
+                                    Trep = Trep_Normal
+                                    AlphaBeta = AlphaBeta_NLiver
+                            elif self.ctObject.structures3D['Lung_L'][i*di,j*dj,k] == True or self.ctObject.structures3D['Lung_R'][i*di,j*dj,k] == True :
                                 Trep = Trep_Normal
                                 AlphaBeta = AlphaBeta_NLung
                             else :
