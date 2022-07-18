@@ -75,7 +75,7 @@ class BioeffectCalculator(dcmpat.PatientCT, dcmpat.Patient3DActivity):
                     else:
                         for k in range(self.activityObject.img3D.shape[2]):
                             if self.ctObject.structures3D['Liver'][i*di,j*dj,k] == True :
-                                if 'All Tumors (Left Lobe)' and 'All Tumors (Right Lobe)' in self.ctObject.structures3D:
+                               if 'All Tumors (Left Lobe)' and 'All Tumors (Right Lobe)' in self.ctObject.structures3D:
                                     if self.ctObject.structures3D['All Tumors (Left Lobe)'][i*di,j*dj,k] == True or self.ctObject.structures3D['All Tumors (Right Lobe)'][i*di,j*dj,k] == True:
                                         Trep = Trep_Tumor
                                         AlphaBeta = AlphaBeta_TLiver
