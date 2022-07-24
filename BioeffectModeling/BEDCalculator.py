@@ -6,7 +6,7 @@ Output -> RTDOSE
 '''
 
 import math
-from os import listdir
+import os
 import pydicom
 import numpy as np
 import matplotlib.pyplot as plt
@@ -20,8 +20,10 @@ class BioeffectCalculator(dcmpat.PatientCT):
         structfile = listdir(basepath + '/RTSTRUCT/')
         structpath = basepath + '/RTSTRUCT/' + structfile[0]
         dosepath = basepath + dosefile
+        dosefile_full = os.path.basename(dosefile)
+        dosefile_split = dosefile_full.split('.')[0]
         self.basepath = basepath
-        self.dosefile = dosefile
+        self.dosefilename = dosefile_split
         self.patientObject = dcmpat.DicomPatient(basepath)
         self.patientObject.dcmFileChosen = pydicom.dcmread(dosepath)
         self.ctObject = dcmpat.PatientCT(ctpath)
@@ -55,7 +57,7 @@ class BioeffectCalculator(dcmpat.PatientCT):
             unit = str(self.patientObject.dcmFileChosen.DoseUnits)
         except:
             unit = 'arb. units'
-        name = 'BEDCalculation_' + self.dosefile + '.dcm'
+        name = 'BEDCalculation_' + self.dosefilename + '.dcm'
         
         mCi = 37 #1mCi = 37 MBq
         Gy = 1e3 #1 Gy = 1000 mGy
