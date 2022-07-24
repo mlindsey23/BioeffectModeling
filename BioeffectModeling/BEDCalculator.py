@@ -5,77 +5,71 @@ Input -> RTDOSE, RTSTRUCT, CT
 Output -> RTDOSE
 '''
 
+import math
+from os import listdir
+import pydicom
 import numpy as np
 from datetime import datetime
 from DICOM_RT import DicomPatient as dcmpat
 from MIRDCalculation_BED.BioeffectModeling.ROI_Values import *
 
 
-# Note: Only includes branches for Normal Liver, Normal Lungs, and other
-# That's all I could find in the RTSTRUCT files I tested, but simple to add more
-
-def GetBEDinDICOM(basepath, dosepath, structpath, HighestVoxelValue, ct_path = '', nm_path = ''):
-    if ct_path == '':
+    
+class BioeffectCalculator(dcmpat.PatientCT):
+    def __init__(self, basepath, dosefile):
         ctpath = basepath + '/CT/'
-    else:
-        ctpath = ct_path
-    if nm_path == '':
-        nmpath = basepath + '/NM/'
-    else:
-        nmpath = nm_path
-    
-    calc = BioeffectCalculator(basepath, ctpath, nmpath, structpath, dosepath)
-    
-    if calc.ctObject.img3D.shape[2] < calc.activityObject.img3D.shape[2]:
-        BEDimg3D = np.zeros((calc.activityObject.img3D.shape[0],calc.activityObject.img3D.shape[1],calc.ctObject.img3D.shape[2]))
-    else :
-        BEDimg3D = np.zeros(calc.activityObject.img3D.shape)
-
-    calc.BEDCalculator(BEDimg3D)
-    BEDimg3D = BEDimg3D / np.max(BEDimg3D) * HighestVoxelValue
-    calc.WriteRTDoseCT(BEDimg3D)
-    print("End BED Calculation.")
-
-    
-class BioeffectCalculator(dcmpat.PatientCT, dcmpat.Patient3DActivity):
-    def __init__(self, basepath, ctpath, nmpath, structpath, dosepath):
+        structfile = listdir(basepath + '/RTSTRUCT/')
+        structpath = basepath + '/RTSTRUCT/' + structfile[0]
+        dosepath = basepath + dosefile
+        self.basepath = basepath
+        self.dosefile = dosefile
         self.patientObject = dcmpat.DicomPatient(basepath)
+        self.patientObject.dcmFileChosen = pydicom.dcmread(dosepath)
         self.ctObject = dcmpat.PatientCT(ctpath)
-        self.activityObject = dcmpat.Patient3DActivity(nmpath)
-        self.activityObject.LoadRTDose(dosepath)
+        self.ctObject.LoadRTDose(dosepath)
         self.ctObject.LoadStructures(structpath)
+        self.BEDimg3D = np.zeros(self.ctObject.img3D.shape)
+        
 
-    def BEDCalculator(self, BEDimg3D):
-            di = round(self.ctObject.img3D.shape[0]/self.activityObject.img3D.shape[0])
-            dj = round(self.ctObject.img3D.shape[1]/self.activityObject.img3D.shape[1])
-            for i in range(self.activityObject.img3D.shape[0]):
-                prog = i/self.activityObject.img3D.shape[0]*100
+    def BEDCalculator(self):
+        for i in range(self.ctObject.quantitiesOfInterest[0].array.shape[0]):
+            if (i % 20) == 0:
+                prog = i/self.ctObject.quantitiesOfInterest[0].array.shape[0]*100
                 print("Calculating BED... (" + str(round(prog,1))+"%)")
-                for j in range(self.activityObject.img3D.shape[1]): 
-                    if self.ctObject.img3D.shape[2] < self.activityObject.img3D.shape[2]:
-                        for k in range(self.ctObject.img3D.shape[2]):
-                            if self.ctObject.structures3D['Liver'][i*di,j*dj,k] == True :
-                                Trep = Trep_Normal
-                                AlphaBeta = AlphaBeta_NLiver
-                            elif self.ctObject.structures3D['Lung_L'][i*di,j*dj,k] == True or self.ctObject.structures3D['Lung_R'][i*di,j*dj,k] == True :
-                                Trep = Trep_Normal
-                                AlphaBeta = AlphaBeta_NLung
-                            else :
-                                Trep = Trep_Normal
-                                AlphaBeta = AlphaBeta_Standard      
-                            BEDimg3D[i,j,k] = self.activityObject.img3D[i,j,k] * (1 + (( self.activityObject.img3D[i,j,k] * Trep) / (AlphaBeta * (Trep + RadionuclideHalfLife))))
-                    else:
-                        for k in range(self.activityObject.img3D.shape[2]):
-                            if self.ctObject.structures3D['Liver'][i*di,j*dj,k] == True :
-                                Trep = Trep_Normal
-                                AlphaBeta = AlphaBeta_NLiver
-                            elif self.ctObject.structures3D['Lung_L'][i*di,j*dj,k] == True or self.ctObject.structures3D['Lung_R'][i*di,j*dj,k] == True :
-                                Trep = Trep_Normal
-                                AlphaBeta = AlphaBeta_NLung
-                            else :
-                                Trep = Trep_Normal
-                                AlphaBeta = AlphaBeta_Standard
-                            BEDimg3D[i,j,k] = self.activityObject.img3D[i,j,k] * (1 + (( self.activityObject.img3D[i,j,k] * Trep) / (AlphaBeta * (Trep + RadionuclideHalfLife))))
-    
-    def WriteRTDoseCT(self, BEDimg3D):
-        self.ctObject.WriteRTDose(BEDimg3D, name = 'BEDCalculation_' + datetime.now().strftime("%m%d%y_%H%M%S") + '.dcm' ) 
+            else:
+                pass
+            for j in range(self.ctObject.quantitiesOfInterest[0].array.shape[1]): 
+                for k in range(self.ctObject.quantitiesOfInterest[0].array.shape[2]):
+                    if self.ctObject.structures3D['Liver'][i,j,k] == True :
+                        Trep = Trep_Normal
+                        AlphaBeta = AlphaBeta_NLiver
+                    elif self.ctObject.structures3D['Lung_L'][i,j,k] == True or self.ctObject.structures3D['Lung_R'][i,j,k] == True :
+                        Trep = Trep_Normal
+                        AlphaBeta = AlphaBeta_NLung
+                    else :
+                        Trep = Trep_Normal
+                        AlphaBeta = AlphaBeta_Standard      
+                    self.BEDimg3D[i,j,k] = self.ctObject.quantitiesOfInterest[0].array[i,j,k] * (1 + (( self.ctObject.quantitiesOfInterest[0].array[i,j,k] * Trep) / (AlphaBeta * (Trep + RadionuclideHalfLife))))
+                    
+                    
+    def WriteRTDoseBED(self):
+        try:
+            unit = str(self.patientObject.dcmFileChosen.DoseUnits)
+        except:
+            unit = 'arb. units'
+        name = 'BEDCalculation_' + self.dosefile + '.dcm'
+        
+        mCi = 37 #1mCi = 37 MBq
+        Gy = 1e3 #1 Gy = 1000 mGy
+        fn = 1
+        if unit == 'mGy/mCi':
+            fn = 1/mCi
+        elif unit == 'Gy/MBq':
+            fn = Gy
+        elif unit == 'Gy/mCi':
+            fn = Gy/mCi
+        else :
+            pass
+        
+        self.BEDimg3D = self.BEDimg3D / fn
+        self.ctObject.WriteRTDose(self.BEDimg3D, self.basepath + name, unit)
