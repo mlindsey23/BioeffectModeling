@@ -234,7 +234,8 @@ class DicomPatient:
                 qoi.unit = ds.DoseUnits
             except:
                 qoi.unit = 'arb. unit'
-        self.quantitiesOfInterest.doseArray = qoi.array
+        # self.quantitiesOfInterest.append(qoi)
+        self.loadedDoseArray = qoi.array
         print(quantity + ' array loaded.')
     
     def DoseInterpolationToCTGrid(self, dosegrid, dx, dy, dz, iniPos, threshold = None):
