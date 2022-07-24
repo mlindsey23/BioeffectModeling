@@ -234,8 +234,7 @@ class DicomPatient:
                 qoi.unit = ds.DoseUnits
             except:
                 qoi.unit = 'arb. unit'
-        # self.quantitiesOfInterest.append(qoi)
-        self.loadedDoseArray = qoi.array
+        self.quantitiesOfInterest.append(qoi)
         print(quantity + ' array loaded.')
     
     def DoseInterpolationToCTGrid(self, dosegrid, dx, dy, dz, iniPos, threshold = None):
@@ -257,10 +256,10 @@ class DicomPatient:
         maxz = shape[2] - int((maxposzCT - maxposzgrid)/(self.sliceThickness+1e-6))
         for icx in range(minx, maxx):
             if (icx % 15) == 0:
-                    porc = (icx-minx)/(maxx-minx)*100
-                    print("Interpolating grid... (" + str(round(porc,1))+"%)")
-                else:
-                    pass
+                porc = (icx-minx)/(maxx-minx)*100
+                print("Interpolating grid... (" + str(round(porc,1))+"%)")
+            else:
+                pass
             for icy in range(miny, maxy):
                 for icz in range(minz, maxz):
                     position = self.GetVoxelDICOMPosition(icx, icy, icz)
