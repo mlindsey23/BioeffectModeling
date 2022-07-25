@@ -1,27 +1,28 @@
-from MIRDCalculation_BED.BioeffectModeling.BEDCalculator import *
 
 ### USER PARAMETERS ###
 
-# 1. Path to DICOM files
-basepath = '/Users/mjlindsey/Documents/Liver Patients/Patient12/'
+# 1. Path to DICOM files (str)
+basepath = '/Users/mjlindsey/Documents/LiverPatients/Patient12/'
 
-# 2. Path to RTDOSE file
-dosepath = '/Users/mjlindsey/Documents/Liver Patients/Patient12/DoseOnCTGrid.dcm'
+# 2. RTDOSE filename (str)
+dosefile = 'MIRDDose.dcm'
 
-# 3. Path to RTSTRUCT file
-structpath = '/Users/mjlindsey/Documents/Liver Patients/Patient12/RTSTRUCT/2.16.840.1.114362.1.11972228.22981817573.591918584.369.1694.dcm'
+# 3. ROIs for EUBED Calculation (str, list)
+ROIList = ['Liver', 'Lung_L', 'Lung_R']
 
-# 4. Highest Voxel Value, to scale the output (NEEDS UPDATE)
-HighestVoxelValue = 60
+# 4. Bins for DVH calculation (for faster processing) (posint)
+bins = 2000
 
-# 5. (optional) Alternate path to CT files (Default: ~/basepath/CT/ )
-ctpath = ''
+### Biological Effective Dose ###
+calc = BioeffectCalculator(basepath, dosefile)
+calc.BEDCalculator()    
+calc.WriteRTDoseBED()
+print("End BED Calculation.")
 
-# 6. (optional) Alternate path to NM files (Default: ~/basepath/NM/ )
-nmpath = ''
+### EUBED ###
+calc.EUBEDCalculator(ROIList)
 
-
-
-### MAIN ###
-
-GetBEDinDICOM(basepath, dosepath, structpath, HighestVoxelValue, ctpath, nmpath)
+### DVH Curves ###
+dvhcalc = DVH(basepath, dosefile)
+dvhcalc.DVHCalculator(ROIList, bins)
+dvhcalc.PlotDVHCurves(ROIList, bins)
