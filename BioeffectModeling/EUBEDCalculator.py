@@ -80,7 +80,7 @@ class BioeffectCalculator(dcmpat.PatientCT):
             sum = 0
             if r == 'Liver' or r == 'Lung_L' or r == 'Lung_R':
                 Alpha_ROI = Alpha_Normal
-            elif r == 'Right Tumor(s)' or r == 'Left Tumor(s)' or r == 'All Tumors (Right Lobe)' or r == 'All Tumors (Left Lobe)'
+            elif r == 'Right Tumor(s)' or r == 'Left Tumor(s)' or r == 'All Tumors (Right Lobe)' or r == 'All Tumors (Left Lobe)':
                 Alpha_ROI = Alpha_TLiver
             else:
                 print('ROI type:' + r + ' not recognized')
