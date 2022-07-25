@@ -1,6 +1,5 @@
 '''
 Convert Absorbed Dose to Biological Effective Dose (BED)
-
 Input -> RTDOSE, RTSTRUCT, CT
 Output -> RTDOSE
 '''
@@ -17,7 +16,7 @@ from MIRDCalculation_BED.BioeffectModeling.ROI_Values import *
 class BioeffectCalculator(dcmpat.PatientCT):
     def __init__(self, basepath, dosefile):
         ctpath = basepath + '/CT/'
-        structfile = listdir(basepath + '/RTSTRUCT/')
+        structfile = os.listdir(basepath + '/RTSTRUCT/')
         structpath = basepath + '/RTSTRUCT/' + structfile[0]
         dosepath = basepath + dosefile
         dosefile_full = os.path.basename(dosefile)
@@ -77,56 +76,52 @@ class BioeffectCalculator(dcmpat.PatientCT):
         
 
 class DVH:
-    def __init__(self, key):
-        self.key = key
+    def __init__(self, basepath, dosefile):
         ctpath = basepath + '/CT/'
-        structfile = listdir(basepath + '/RTSTRUCT/')
+        structfile = os.listdir(basepath + '/RTSTRUCT/')
         structpath = basepath + '/RTSTRUCT/' + structfile[0]
         dosepath = basepath + dosefile
         self.basepath = basepath
         self.dosefile = dosefile
         self.patientObject = dcmpat.DicomPatient(basepath)
+        self.patientObject.dcmFileChosen = pydicom.dcmread(dosepath)
         self.ctObject = dcmpat.PatientCT(ctpath)
         self.ctObject.LoadRTDose(dosepath)
         self.ctObject.LoadStructures(structpath)
-    
-    def DVHCalculator(self):
-        self.darr = np.zeros(self.ctObject.quantitiesOfInterest[0].array.shape) 
-        maxdose = round(self.ctObject.quantitiesOfInterest[0].array.max())
-        mindose = round(self.ctObject.quantitiesOfInterest[0].array.min())
-        roi_min = round(self.darr.min())
-        roi_max = round(self.darr.max())
-        self.hist = [0] * (roi_max - roi_min)
-        for i in range(self.ctObject.quantitiesOfInterest[0].array.shape[0]):
-            if (i % 20) == 0:
-                prog = i/self.ctObject.quantitiesOfInterest[0].array.shape[0]*100 
-                print("Getting DVH for " + self.key +  "... (" + str(round(prog,1))+"%)")
-            else:
-                pass
-            for j in range(self.ctObject.quantitiesOfInterest[0].array.shape[1]): 
-                for k in range(self.ctObject.quantitiesOfInterest[0].array.shape[2]):
-                    if ctstruct[self.key][i,j,k] == True:
-                        self.darr[i,j,k] = self.ctObject.quantitiesOfInterest[0].array[i,j,k]   
-                    else:
-                        pass
-        for h in range(len(self.hist)):
-            self.hist[h] = (self.darr > (h + mindose)).sum() / (self.darr > 0).sum() * 100
-        if len(self.hist) < (maxdose - mindose):
-            diff = (maxdose - mindose) - len(self.hist)
-            self.hist = self.hist + [0]*diff
-        else:
-            pass
-        print(self.key + ' DVH Calculated.')
-    
-    def PlotDVHCurves(ROIs):
-        for r in ROIs:
-            r = DVHtest(r)
-            r.GetDVH()
+        self.curves = []
+        
+    def DVHCalculator(self, ROIList, bins = 2000):
+        for r in ROIList:
+            darr = np.zeros(self.ctObject.quantitiesOfInterest[0].array.shape) 
+            hist = [0] * bins
             maxdose = round(self.ctObject.quantitiesOfInterest[0].array.max())
             mindose = round(self.ctObject.quantitiesOfInterest[0].array.min())
-            plt.plot(np.arange(maxdose - mindose), r.hist)
-        plt.xlabel("Dose")
+            for i in range(self.ctObject.quantitiesOfInterest[0].array.shape[0]):
+                if (i % 30) == 0:
+                    prog = i/self.ctObject.quantitiesOfInterest[0].array.shape[0]*100 
+                    print("Getting DVH for " + r +  "... (" + str(round(prog,1))+"%)")
+                for j in range(self.ctObject.quantitiesOfInterest[0].array.shape[1]): 
+                    for k in range(self.ctObject.quantitiesOfInterest[0].array.shape[2]):
+                        if self.ctObject.structures3D[r][i,j,k] == True:
+                            darr[i,j,k] = self.ctObject.quantitiesOfInterest[0].array[i,j,k]   
+                        else:
+                            pass
+            for h in range(bins):
+                hist[h] = (darr > (h * (maxdose/bins))).sum() / (darr > 0).sum() * 100
+            self.curves.append(hist)
+            print(r + ' DVH Calculated.')
+    
+    def PlotDVHCurves(self, ROIList, bins):
+        try:
+            unit = str(self.patientObject.dcmFileChosen.DoseUnits)
+        except:
+            unit = 'arb. units'
+        for r in ROIList:
+            maxdose = round(self.ctObject.quantitiesOfInterest[0].array.max())
+            mindose = round(self.ctObject.quantitiesOfInterest[0].array.min())
+            plt.plot(np.arange(bins), self.curves[ROIList.index(r)])
+        plt.xlabel('Dose [' + unit + ']')
         plt.ylabel("Volume [%]")
-        plt.xlim([0,maxdose])
-        plt.legend(ROIs, loc="upper right")
+        plt.xlim([0,bins])
+        plt.legend(ROIList, loc="upper right")
         plt.show()
