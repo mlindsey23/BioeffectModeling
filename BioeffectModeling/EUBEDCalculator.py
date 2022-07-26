@@ -14,7 +14,8 @@ from DICOM_RT import DicomPatient as dcmpat
 from MIRDCalculation_BED.BioeffectModeling.ROI_Values import *
     
 class BioeffectCalculator(dcmpat.PatientCT):
-    def __init__(self, basepath, dosefile):
+    def __init__(self, basepath, dosefile, unit = "Gy/GBq"):
+        self.unit = unit
         ctpath = basepath + '/CT/'
         dosepath = basepath + dosefile
         dosefile_full = os.path.basename(dosefile)
@@ -40,6 +41,10 @@ class BioeffectCalculator(dcmpat.PatientCT):
         
 
     def BEDCalculator(self):
+        if self.unit == "Gy/GBq" and str(self.patientObject.dcmFileChosen.DoseUnits) == "Gy/mCi" :
+            self.ctObject.quantitiesOfInterest[0].array = 27.027 * self.ctObject.quantitiesOfInterest[0].array
+        elif self.unit == "Gy/mCi" and str(self.patientObject.dcmFileChosen.DoseUnits) == "Gy/GBq":
+            self.ctObject.quantitiesOfInterest[0].array = self.ctObject.quantitiesOfInterest[0].array / 27.027
         for i in range(self.ctObject.quantitiesOfInterest[0].array.shape[0]):
             if (i % 20) == 0:
                 prog = i/self.ctObject.quantitiesOfInterest[0].array.shape[0]*100
@@ -67,13 +72,9 @@ class BioeffectCalculator(dcmpat.PatientCT):
                         AlphaBeta = AlphaBeta_Standard      
                     self.BEDimg3D[i,j,k] = self.ctObject.quantitiesOfInterest[0].array[i,j,k] * (1 + (( self.ctObject.quantitiesOfInterest[0].array[i,j,k] * Trep) / (AlphaBeta * (Trep + RadionuclideHalfLife))))
                                         
-    def WriteRTDoseBED(self, unit = "Gy/GBq", seriesdescription = 'BED_' + self.dosefilename):
-        if unit == "Gy/GBq" and str(self.patientObject.dcmFileChosen.DoseUnits) == "Gy/mCi" :
-            self.BEDimg3D = 27.027 * self.BEDimg3D
-        elif unit == "Gy/mCi" and str(self.patientObject.dcmFileChosen.DoseUnits) == "Gy/GBq":
-            self.BEDimg3D = self.BEDimg3D / 27.027
+    def WriteRTDoseBED(self, seriesdescription = 'BED_' + self.dosefilename):
         name = 'BED_' + self.dosefilename + '.dcm'
-        self.ctObject.WriteRTDose(self.BEDimg3D, self.basepath + name, unit, seriesdescription)
+        self.ctObject.WriteRTDose(self.BEDimg3D, self.basepath + name, self.unit, seriesdescription)
 
     def EUBEDCalculator(self, ROIList, CreateFile):
         for r in ROIList:
