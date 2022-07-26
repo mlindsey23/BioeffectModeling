@@ -67,13 +67,13 @@ class BioeffectCalculator(dcmpat.PatientCT):
                         AlphaBeta = AlphaBeta_Standard      
                     self.BEDimg3D[i,j,k] = self.ctObject.quantitiesOfInterest[0].array[i,j,k] * (1 + (( self.ctObject.quantitiesOfInterest[0].array[i,j,k] * Trep) / (AlphaBeta * (Trep + RadionuclideHalfLife))))
                                         
-    def WriteRTDoseBED(self, unit = "Gy/GBq"):
+    def WriteRTDoseBED(self, unit = "Gy/GBq", seriesdescription = 'BED_' + self.dosefilename):
         if unit == "Gy/GBq" and str(self.patientObject.dcmFileChosen.DoseUnits) == "Gy/mCi" :
             self.BEDimg3D = 27.027 * self.BEDimg3D
         elif unit == "Gy/mCi" and str(self.patientObject.dcmFileChosen.DoseUnits) == "Gy/GBq":
             self.BEDimg3D = self.BEDimg3D / 27.027
         name = 'BED_' + self.dosefilename + '.dcm'
-        self.ctObject.WriteRTDose(self.BEDimg3D, self.basepath + name, unit)
+        self.ctObject.WriteRTDose(self.BEDimg3D, self.basepath + name, unit, seriesdescription)
 
     def EUBEDCalculator(self, ROIList, CreateFile):
         for r in ROIList:
