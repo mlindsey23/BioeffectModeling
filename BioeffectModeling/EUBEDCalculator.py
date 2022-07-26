@@ -72,7 +72,9 @@ class BioeffectCalculator(dcmpat.PatientCT):
                         AlphaBeta = AlphaBeta_Standard      
                     self.BEDimg3D[i,j,k] = self.ctObject.quantitiesOfInterest[0].array[i,j,k] * (1 + (( self.ctObject.quantitiesOfInterest[0].array[i,j,k] * Trep) / (AlphaBeta * (Trep + RadionuclideHalfLife))))
                                         
-    def WriteRTDoseBED(self, seriesdescription = 'BED_' + calc.dosefilename):
+    def WriteRTDoseBED(self, seriesdescription = None):
+        if seriesdescription == None:
+            seriesdescription = 'BED_' + self.dosefilename
         name = 'BED_' + self.dosefilename + '.dcm'
         self.ctObject.WriteRTDose(self.BEDimg3D, self.basepath + name, self.unit, seriesdescription)
 
