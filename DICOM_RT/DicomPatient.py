@@ -72,7 +72,7 @@ class DicomPatient:
         p.imshow(self.img3D[:,:,sliceNumber], extent=[minx,maxx,miny,maxy], cmap=colormap)
         p.set_aspect(self.axAspect)
         
-    def WriteRTDose(self, doseGrid = None, name = None, unit = None):
+    def WriteRTDose(self, doseGrid = None, name = None, unit = None, seriesdescription = 'Dose-RT_DICOM v1.2'):
         if doseGrid is None:
             try:
                 for q in self.quantitiesOfInterest:
@@ -107,7 +107,7 @@ class DicomPatient:
         base.SeriesInstanceUID = pydicom.uid.generate_uid(specificRootUID)
         base.Manufacturer = 'MIRDCalculator'
         base.ManufacturerModelName = 'RT_DICOM v1.2 by abertoletreina@mgh.harvard.edu'
-        base.SeriesDescription = 'Dose-RT_DICOM v1.2'
+        base.SeriesDescription = seriesdescription
         # Date and time
         now = datetime.now()
         base.StudyDate = now.strftime("%Y%M%d")
