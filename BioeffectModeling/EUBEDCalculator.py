@@ -106,10 +106,10 @@ class BioeffectCalculator(dcmpat.PatientCT):
             if CreateFile == True:
                 if ROIList.index(r) == 0:
                     f = open(self.basepath + 'EUBEDData_' + self.dosefilename + '.txt', 'w+')
-                    f.write(("EUBED Data for " + self.dosefilename + "\n\n    EUBED for " + r + " = {} \n    Mean Dose for " + r + " = {} \n    EUBED relative to Mean Dose for " + r + " = {} \n\n").format(EUBED, MEAN, RATIO))
+                    f.write(("EUBED Data for " + self.dosefilename + "\n\n    EUBED for " + r + " = {} " + self.patientObject.dcmFileChosen.DoseUnits + "\n    Mean Dose for " + r + " = {} " + self.patientObject.dcmFileChosen.DoseUnits + "\n    EUBED relative to Mean Dose for " + r + " = {} \n\n").format(EUBED, MEAN, RATIO))
                 else:
                     f = open(self.basepath + 'EUBEDData_' + self.dosefilename + '.txt', 'a+')
-                    f.write(("    EUBED for " + r + " = {} \n    Mean Dose for " + r + " = {} \n    EUBED relative to Mean Dose for " + r + " = {} \n\n").format(EUBED, MEAN, RATIO))
+                    f.write(("    EUBED for " + r + " = {} " + self.patientObject.dcmFileChosen.DoseUnits + "\n    Mean Dose for " + r + " = {} " + self.patientObject.dcmFileChosen.DoseUnits + "\n    EUBED relative to Mean Dose for " + r + " = {} \n\n").format(EUBED, MEAN, RATIO))
             print("EUBED for " + r + " =", EUBED)
             print("Mean Dose for " + r + " =", MEAN)
             print("EUBED relative to Mean Dose for " + r + " =", RATIO)
@@ -118,8 +118,10 @@ class DVH:
     def __init__(self, basepath, dosefile):
         ctpath = basepath + '/CT/'
         dosepath = basepath + dosefile
+        dosefile_full = os.path.basename(dosefile)
+        dosefile_split = dosefile_full.split('.')[0]
         self.basepath = basepath
-        self.dosefile = dosefile
+        self.dosefilename = dosefile_split
         self.patientObject = dcmpat.DicomPatient(basepath)
         self.patientObject.dcmFileChosen = pydicom.dcmread(dosepath)
         self.ctObject = dcmpat.PatientCT(ctpath)
