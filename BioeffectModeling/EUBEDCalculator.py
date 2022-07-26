@@ -75,9 +75,8 @@ class BioeffectCalculator(dcmpat.PatientCT):
         name = 'BEDCalculation_' + self.dosefilename + '.dcm'
         self.ctObject.WriteRTDose(self.BEDimg3D, self.basepath + name, unit)
 
-    def EUBEDCalculator(self, ROIList):
+    def EUBEDCalculator(self, ROIList, CreateFile = True):
         for r in ROIList:
-            # Establish array with only ROI BED values
             darr = np.zeros(self.ctObject.quantitiesOfInterest[0].array.shape) 
             for i in range(self.ctObject.quantitiesOfInterest[0].array.shape[0]):
                 if (i % 30) == 0:
@@ -86,9 +85,7 @@ class BioeffectCalculator(dcmpat.PatientCT):
                 for j in range(self.ctObject.quantitiesOfInterest[0].array.shape[1]): 
                     for k in range(self.ctObject.quantitiesOfInterest[0].array.shape[2]):
                         if self.ctObject.structures3D[r][i,j,k] == True:
-                            darr[i,j,k] = self.ctObject.quantitiesOfInterest[0].array[i,j,k] 
-
-            # Calculate summation  
+                            darr[i,j,k] = self.ctObject.quantitiesOfInterest[0].array[i,j,k]   
             sum = 0
             if r == 'Liver' or r == 'Lung_L' or r == 'Lung_R':
                 Alpha_ROI = Alpha_Normal
@@ -101,14 +98,21 @@ class BioeffectCalculator(dcmpat.PatientCT):
                 for j in range(darr.shape[1]): 
                     for k in range(darr.shape[2]):
                         if darr[i,j,k] > 0:
-                            sum = sum + math.exp(-Alpha_ROI * darr[i,j,k])   
-     
-            # Calculate EUBED
+                            sum += math.exp(-Alpha_ROI * darr[i,j,k])   
             N = (self.ctObject.structures3D[r]).sum()
-
-            EUBED = -1/Alpha_eq * np.log(sum / N)
-
-            print("EUBED for " + r + " =", EUBED, sum)   
+            EUBED = -1/Alpha_Normal * np.log(sum / N)
+            MEAN = np.sum(darr) / N
+            RATIO = EUBED/MEAN
+            if CreateFile == True:
+                if ROIList.index(r) == 0:
+                    f = open(self.basepath + 'EUBEDData_' + self.dosefilename + '.txt', 'w+')
+                    f.write(("EUBED Data for " + self.dosefilename + "\n\n    EUBED for " + r + " = {} \n    Mean Dose for " + r + " = {} \n    EUBED relative to Mean Dose for " + r + " = {} \n\n").format(EUBED, MEAN, RATIO))
+                else:
+                    f = open(self.basepath + 'EUBEDData_' + self.dosefilename + '.txt', 'a+')
+                    f.write(("    EUBED for " + r + " = {} \n    Mean Dose for " + r + " = {} \n    EUBED relative to Mean Dose for " + r + " = {} \n\n").format(EUBED, MEAN, RATIO))
+            print("EUBED for " + r + " =", EUBED)
+            print("Mean Dose for " + r + " =", MEAN)
+            print("EUBED relative to Mean Dose for " + r + " =", RATIO)
 
 class DVH:
     def __init__(self, basepath, dosefile):
@@ -133,7 +137,7 @@ class DVH:
         print("ROI's identified:", list(self.ctObject.structures3D.keys()))
         self.curves = []
         
-    def DVHCalculator(self, ROIList, bins = 2000):
+    def DVHCalculator(self, ROIList, bins = 1000):
         for r in ROIList:
             darr = np.zeros(self.ctObject.quantitiesOfInterest[0].array.shape) 
             hist = [0] * bins
@@ -152,23 +156,19 @@ class DVH:
             self.curves.append(hist)
             print(r + ' DVH Calculated.')
     
-    def PlotDVHCurves(self, ROIList, bins):
+    def PlotDVHCurves(self, ROIList, bins = 1000):
+        if self.ctObject.quantitiesOfInterest[0].array.max() < 0.1:
+            print('ERROR: Dose grid values too low to create DVH.')
         try:
             unit = str(self.patientObject.dcmFileChosen.DoseUnits)
         except:
             unit = 'arb. units'
-        for r in ROIList:
-            maxdose = round(self.ctObject.quantitiesOfInterest[0].array.max())
-            mindose = round(self.ctObject.quantitiesOfInterest[0].array.min())
-            plt.plot(np.arange(bins), self.curves[ROIList.index(r)])
         maxdose = round(self.ctObject.quantitiesOfInterest[0].array.max())
-        xpts = np.linspace(0, 1/bins, maxdose)
-        default_x_ticks = range(len(xpts))
+        xpts = np.linspace(0, maxdose, bins)
+        for r in ROIList:
+            plt.plot(xpts, self.curves[ROIList.index(r)])
         plt.xlabel('Dose [' + unit + ']')
         plt.ylabel("Volume [%]")
-        plt.xlim([0,bins])
-        plt.xticks(default_x_ticks, xpts)
         plt.legend(ROIList, loc="upper right")
         plt.show()
-
 
