@@ -75,7 +75,7 @@ class BioeffectCalculator(dcmpat.PatientCT):
         name = 'BEDCalculation_' + self.dosefilename + '.dcm'
         self.ctObject.WriteRTDose(self.BEDimg3D, self.basepath + name, unit)
 
-    def EUBEDCalculator(self, ROIList, CreateFile = True):
+    def EUBEDCalculator(self, ROIList, CreateFile):
         for r in ROIList:
             darr = np.zeros(self.ctObject.quantitiesOfInterest[0].array.shape) 
             for i in range(self.ctObject.quantitiesOfInterest[0].array.shape[0]):
