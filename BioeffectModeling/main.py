@@ -9,6 +9,9 @@ basepath = '/Users/mjlindsey/Documents/LiverPatients/Patient1/POSTTX/'
 # 2. RTDOSE filename (str)
 dosefile = 'MIRDDose.dcm'
 
+# 3. Units for BED RTDOSE file (str) (Choose from "Gy/Gbq", "Gy/mCi", or "Gy")
+unit = "Gy/GBq"
+
 # 3. ROIs for EUBED Calculation (str, list)
 ROIList = ['Liver', 'Lung_L', 'Lung_R']
 
@@ -16,12 +19,12 @@ ROIList = ['Liver', 'Lung_L', 'Lung_R']
 CreateFile = True
 
 # 4. Bins for DVH calculation, to tune precision and processing time (posint)
-bins = 2000
+bins = 1000
 
 ### Biological Effective Dose ###
 calc = BioeffectCalculator(basepath, dosefile)
 calc.BEDCalculator()    
-calc.WriteRTDoseBED()
+calc.WriteRTDoseBED(unit)
 print("End BED Calculation.")
 
 ### EUBED ###
