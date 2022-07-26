@@ -10,7 +10,7 @@ import pydicom
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import simpson
-from DICOM_RT import DicomPatient as dcmpat
+from MIRDCalculation_BED.DICOM_RT import DicomPatient as dcmpat
 from MIRDCalculation_BED.BioeffectModeling.ROI_Values import *
     
 class BioeffectCalculator(dcmpat.PatientCT):
