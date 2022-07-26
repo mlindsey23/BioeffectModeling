@@ -17,7 +17,6 @@ class BioeffectCalculator(dcmpat.PatientCT):
     def __init__(self, basepath, dosefile):
         ctpath = basepath + '/CT/'
         structfile = os.listdir(basepath + '/RTSTRUCT/')
-        structpath = basepath + '/RTSTRUCT/' + structfile[0]
         dosepath = basepath + dosefile
         dosefile_full = os.path.basename(dosefile)
         dosefile_split = dosefile_full.split('.')[0]
@@ -27,7 +26,12 @@ class BioeffectCalculator(dcmpat.PatientCT):
         self.patientObject.dcmFileChosen = pydicom.dcmread(dosepath)
         self.ctObject = dcmpat.PatientCT(ctpath)
         self.ctObject.LoadRTDose(dosepath)
-        self.ctObject.LoadStructures(structpath)
+        try:
+            structpath = basepath + '/RTSTRUCT/' + structfile[0]
+            self.ctObject.LoadStructures(structpath)
+        except:
+            structpath = basepath + '/RTSTRUCT_LUNGSANDLIVER/' + structfile[0]
+            self.ctObject.LoadStructures(structpath)
         self.BEDimg3D = np.zeros(self.ctObject.img3D.shape)
         
 
