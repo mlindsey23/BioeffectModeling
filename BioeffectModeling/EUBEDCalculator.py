@@ -114,8 +114,8 @@ class BioeffectCalculator(dcmpat.PatientCT):
                 else:
                     f = open(self.basepath + 'EUBEDData_' + self.dosefilename + '.txt', 'a+')
                     f.write(("    EUBED for " + r + " = {} " + unit + "\n    Mean Dose for " + r + " = {} " + unit + "\n    EUBED relative to Mean Dose for " + r + " = {} \n\n").format(EUBED, MEAN, RATIO))
-            print(("EUBED for " + r + " = {} " + + self.patientObject.dcmFileChosen.DoseUnits).format(EUBED))
-            print(("Mean Dose for " + r + " = {} " + + self.patientObject.dcmFileChosen.DoseUnits).format(MEAN))
+            print(("EUBED for " + r + " = {} " + self.patientObject.dcmFileChosen.DoseUnits).format(EUBED))
+            print(("Mean Dose for " + r + " = {} " + self.patientObject.dcmFileChosen.DoseUnits).format(MEAN))
             print(("EUBED relative to Mean Dose for " + r + " = {}").format(RATIO))
 
 class DVH:
