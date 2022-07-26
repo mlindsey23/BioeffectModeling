@@ -22,9 +22,9 @@ CreateFile = True
 bins = 1000
 
 ### Biological Effective Dose ###
-calc = BioeffectCalculator(basepath, dosefile)
+calc = BioeffectCalculator(basepath, dosefile, unit)
 calc.BEDCalculator()    
-calc.WriteRTDoseBED(unit)
+calc.WriteRTDoseBED()
 print("End BED Calculation.")
 
 ### EUBED ###
