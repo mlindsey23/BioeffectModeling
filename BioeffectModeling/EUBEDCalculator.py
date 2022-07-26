@@ -29,10 +29,13 @@ class BioeffectCalculator(dcmpat.PatientCT):
             structfile = os.listdir(basepath + '/RTSTRUCT/')
             structpath = basepath + '/RTSTRUCT/' + structfile[0]
             self.ctObject.LoadStructures(structpath)
-        except:
+        except Exception as e: 
             structfile = os.listdir(basepath + '/RTSTRUCT_LUNGSANDLIVER/')
             structpath = basepath + '/RTSTRUCT_LUNGSANDLIVER/' + structfile[0]
             self.ctObject.LoadStructures(structpath)
+            print('ERROR: Could not load complete RTSTRUCT. Error code:', e)
+            print('RTSTRUCT_LUNGSANDLIVER loaded instead.')
+        print("ROI's identified:", list(calc.ctObject.structures3D.keys()))
         self.BEDimg3D = np.zeros(self.ctObject.img3D.shape)
         
     def BEDCalculator(self):
