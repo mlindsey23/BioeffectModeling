@@ -170,5 +170,7 @@ class DVH:
         plt.xlabel('Dose [' + unit + ']')
         plt.ylabel("Volume [%]")
         plt.legend(ROIList, loc="upper right")
+        plt.savefig(self.basepath + 'DVH_' + self.dosefilename + '.png')
+        plt.savefig(self.basepath + 'DVH_' + self.dosefilename + '.jpg')
         plt.show()
 
