@@ -106,17 +106,13 @@ class BioeffectCalculator(dcmpat.PatientCT):
             EUBED = -1/Alpha_Normal * np.log(sum / N)
             MEAN = np.sum(darr) / N
             RATIO = EUBED/MEAN
-            try:
-                unit = str(self.patientObject.dcmFileChosen.DoseUnits)
-            except:
-                unit = 'arb. units'
             if CreateFile == True:
                 if ROIList.index(r) == 0:
                     f = open(self.basepath + 'EUBEDData_' + self.dosefilename + '.txt', 'w+')
-                    f.write(("EUBED Data for " + self.dosefilename + "\n\n    EUBED for " + r + " = {} " + unit + "\n    Mean Dose for " + r + " = {} " + unit + "\n    EUBED relative to Mean Dose for " + r + " = {} \n\n").format(EUBED, MEAN, RATIO))
+                    f.write(("EUBED Data for " + self.dosefilename + "\n\n    EUBED for " + r + " = {} " + self.unit + "\n    Mean Dose for " + r + " = {} " + self.unit + "\n    EUBED relative to Mean Dose for " + r + " = {} \n\n").format(EUBED, MEAN, RATIO))
                 else:
                     f = open(self.basepath + 'EUBEDData_' + self.dosefilename + '.txt', 'a+')
-                    f.write(("    EUBED for " + r + " = {} " + unit + "\n    Mean Dose for " + r + " = {} " + unit + "\n    EUBED relative to Mean Dose for " + r + " = {} \n\n").format(EUBED, MEAN, RATIO))
+                    f.write(("    EUBED for " + r + " = {} " + self.unit + "\n    Mean Dose for " + r + " = {} " + self.unit + "\n    EUBED relative to Mean Dose for " + r + " = {} \n\n").format(EUBED, MEAN, RATIO))
             print(("EUBED for " + r + " = {} " + self.patientObject.dcmFileChosen.DoseUnits).format(EUBED))
             print(("Mean Dose for " + r + " = {} " + self.patientObject.dcmFileChosen.DoseUnits).format(MEAN))
             print(("EUBED relative to Mean Dose for " + r + " = {}").format(RATIO))
