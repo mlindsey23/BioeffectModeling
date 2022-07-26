@@ -33,11 +33,12 @@ class BioeffectCalculator(dcmpat.PatientCT):
             structfile = os.listdir(basepath + '/RTSTRUCT_LUNGSANDLIVER/')
             structpath = basepath + '/RTSTRUCT_LUNGSANDLIVER/' + structfile[0]
             self.ctObject.LoadStructures(structpath)
-            print('ERROR: Could not load complete RTSTRUCT. Error code:', e)
+            print('ERROR: Could not load complete RTSTRUCT. CODE:', e)
             print('RTSTRUCT_LUNGSANDLIVER loaded instead.')
-        print("ROI's identified:", list(calc.ctObject.structures3D.keys()))
+        print("ROI's identified:", list(self.ctObject.structures3D.keys()))
         self.BEDimg3D = np.zeros(self.ctObject.img3D.shape)
         
+
     def BEDCalculator(self):
         for i in range(self.ctObject.quantitiesOfInterest[0].array.shape[0]):
             if (i % 20) == 0:
@@ -48,10 +49,14 @@ class BioeffectCalculator(dcmpat.PatientCT):
             for j in range(self.ctObject.quantitiesOfInterest[0].array.shape[1]): 
                 for k in range(self.ctObject.quantitiesOfInterest[0].array.shape[2]):
                     if self.ctObject.structures3D['Liver'][i,j,k] == True :
-                        if self.ctObject.structures3D['Right Tumor(s)'][i,j,k] == True or self.ctObject.structures3D['Left Tumor(s)'][i,j,k] == True or self.ctObject.structures3D['All Tumors (Left Lobe)'][i,j,k] == True or self.ctObject.structures3D['All Tumors (Right Lobe)'][i,j,k] == True:
-                            Trep = Trep_Tumor
-                            AlphaBeta = AlphaBeta_TLiver
-                        else:
+                        try:
+                            if self.ctObject.structures3D['Right Tumor(s)'][i,j,k] == True or self.ctObject.structures3D['Left Tumor(s)'][i,j,k] == True or self.ctObject.structures3D['All Tumors (Left Lobe)'][i,j,k] == True or self.ctObject.structures3D['All Tumors (Right Lobe)'][i,j,k] == True:
+                                Trep = Trep_Tumor
+                                AlphaBeta = AlphaBeta_TLiver
+                            else:
+                                Trep = Trep_Normal
+                                AlphaBeta = AlphaBeta_NLiver
+                        except:
                             Trep = Trep_Normal
                             AlphaBeta = AlphaBeta_NLiver
                     elif self.ctObject.structures3D['Lung_L'][i,j,k] == True or self.ctObject.structures3D['Lung_R'][i,j,k] == True :
@@ -108,8 +113,6 @@ class BioeffectCalculator(dcmpat.PatientCT):
 class DVH:
     def __init__(self, basepath, dosefile):
         ctpath = basepath + '/CT/'
-        structfile = os.listdir(basepath + '/RTSTRUCT/')
-        structpath = basepath + '/RTSTRUCT/' + structfile[0]
         dosepath = basepath + dosefile
         self.basepath = basepath
         self.dosefile = dosefile
@@ -117,7 +120,17 @@ class DVH:
         self.patientObject.dcmFileChosen = pydicom.dcmread(dosepath)
         self.ctObject = dcmpat.PatientCT(ctpath)
         self.ctObject.LoadRTDose(dosepath)
-        self.ctObject.LoadStructures(structpath)
+        try:
+            structfile = os.listdir(basepath + '/RTSTRUCT/')
+            structpath = basepath + '/RTSTRUCT/' + structfile[0]
+            self.ctObject.LoadStructures(structpath)
+        except Exception as e: 
+            structfile = os.listdir(basepath + '/RTSTRUCT_LUNGSANDLIVER/')
+            structpath = basepath + '/RTSTRUCT_LUNGSANDLIVER/' + structfile[0]
+            self.ctObject.LoadStructures(structpath)
+            print('ERROR: Could not load complete RTSTRUCT. CODE:', e)
+            print('RTSTRUCT_LUNGSANDLIVER loaded instead.')
+        print("ROI's identified:", list(self.ctObject.structures3D.keys()))
         self.curves = []
         
     def DVHCalculator(self, ROIList, bins = 2000):
@@ -148,8 +161,14 @@ class DVH:
             maxdose = round(self.ctObject.quantitiesOfInterest[0].array.max())
             mindose = round(self.ctObject.quantitiesOfInterest[0].array.min())
             plt.plot(np.arange(bins), self.curves[ROIList.index(r)])
+        maxdose = round(self.ctObject.quantitiesOfInterest[0].array.max())
+        xpts = np.linspace(0, 1/bins, maxdose)
+        default_x_ticks = range(len(xpts))
         plt.xlabel('Dose [' + unit + ']')
         plt.ylabel("Volume [%]")
         plt.xlim([0,bins])
+        plt.xticks(default_x_ticks, xpts)
         plt.legend(ROIList, loc="upper right")
         plt.show()
+
+
