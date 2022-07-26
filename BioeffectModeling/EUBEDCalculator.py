@@ -16,7 +16,6 @@ from MIRDCalculation_BED.BioeffectModeling.ROI_Values import *
 class BioeffectCalculator(dcmpat.PatientCT):
     def __init__(self, basepath, dosefile):
         ctpath = basepath + '/CT/'
-        structfile = os.listdir(basepath + '/RTSTRUCT/')
         dosepath = basepath + dosefile
         dosefile_full = os.path.basename(dosefile)
         dosefile_split = dosefile_full.split('.')[0]
@@ -27,14 +26,15 @@ class BioeffectCalculator(dcmpat.PatientCT):
         self.ctObject = dcmpat.PatientCT(ctpath)
         self.ctObject.LoadRTDose(dosepath)
         try:
+            structfile = os.listdir(basepath + '/RTSTRUCT/')
             structpath = basepath + '/RTSTRUCT/' + structfile[0]
             self.ctObject.LoadStructures(structpath)
         except:
+            structfile = os.listdir(basepath + '/RTSTRUCT_LUNGSANDLIVER/')
             structpath = basepath + '/RTSTRUCT_LUNGSANDLIVER/' + structfile[0]
             self.ctObject.LoadStructures(structpath)
         self.BEDimg3D = np.zeros(self.ctObject.img3D.shape)
         
-
     def BEDCalculator(self):
         for i in range(self.ctObject.quantitiesOfInterest[0].array.shape[0]):
             if (i % 20) == 0:
