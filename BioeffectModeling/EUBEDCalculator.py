@@ -41,11 +41,6 @@ class BioeffectCalculator(dcmpat.PatientCT):
         self.ConvertDoseUnits()
 
     def BEDCalculator(self):
-        if self.unit == "Gy/GBq" and str(self.patientObject.dcmFileChosen.DoseUnits) == "Gy/mCi" :
-            self.ctObject.quantitiesOfInterest[0].array = 27.027 * self.ctObject.quantitiesOfInterest[0].array
-        elif self.unit == "Gy/mCi" and str(self.patientObject.dcmFileChosen.DoseUnits) == "Gy/GBq":
-            self.ctObject.quantitiesOfInterest[0].array = self.ctObject.quantitiesOfInterest[0].array / 27.027
-        self.img3D = self.ctObject.quantitiesOfInterest[0].array
         for i in range(self.ctObject.quantitiesOfInterest[0].array.shape[0]):
             if (i % 20) == 0:
                 prog = i/self.ctObject.quantitiesOfInterest[0].array.shape[0]*100
