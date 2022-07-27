@@ -45,6 +45,7 @@ class BioeffectCalculator(dcmpat.PatientCT):
             self.ctObject.quantitiesOfInterest[0].array = 27.027 * self.ctObject.quantitiesOfInterest[0].array
         elif self.unit == "Gy/mCi" and str(self.patientObject.dcmFileChosen.DoseUnits) == "Gy/GBq":
             self.ctObject.quantitiesOfInterest[0].array = self.ctObject.quantitiesOfInterest[0].array / 27.027
+        self.img3D = self.ctObject.quantitiesOfInterest[0].array
         for i in range(self.ctObject.quantitiesOfInterest[0].array.shape[0]):
             if (i % 20) == 0:
                 prog = i/self.ctObject.quantitiesOfInterest[0].array.shape[0]*100
@@ -80,15 +81,15 @@ class BioeffectCalculator(dcmpat.PatientCT):
 
     def EUBEDCalculator(self, ROIList, CreateFile):
         for r in ROIList:
-            darr = np.zeros(self.ctObject.quantitiesOfInterest[0].array.shape) 
-            for i in range(self.ctObject.quantitiesOfInterest[0].array.shape[0]):
+            darr = np.zeros(self.BEDimg3D.shape) 
+            for i in range(self.BEDimg3D.shape[0]):
                 if (i % 30) == 0:
-                    prog = i/self.ctObject.quantitiesOfInterest[0].array.shape[0]*100 
+                    prog = i/self.BEDimg3D.shape[0]*100 
                     print("Calculating EUBED for " + r +  "... (" + str(round(prog,1))+"%)")
-                for j in range(self.ctObject.quantitiesOfInterest[0].array.shape[1]): 
-                    for k in range(self.ctObject.quantitiesOfInterest[0].array.shape[2]):
+                for j in range(self.BEDimg3D.shape[1]): 
+                    for k in range(self.BEDimg3D.shape[2]):
                         if self.ctObject.structures3D[r][i,j,k] == True:
-                            darr[i,j,k] = self.ctObject.quantitiesOfInterest[0].array[i,j,k]   
+                            darr[i,j,k] = self.BEDimg3D[i,j,k]   
             sum = 0
             if r == 'Liver' or r == 'Lung_L' or r == 'Lung_R':
                 Alpha_ROI = Alpha_Normal
@@ -116,6 +117,45 @@ class BioeffectCalculator(dcmpat.PatientCT):
             print(("EUBED for " + r + " = {} " + self.patientObject.dcmFileChosen.DoseUnits).format(EUBED))
             print(("Mean Dose for " + r + " = {} " + self.patientObject.dcmFileChosen.DoseUnits).format(MEAN))
             print(("EUBED relative to Mean Dose for " + r + " = {}").format(RATIO))
+    
+    def EUDCalculator(self, ROIList, CreateFile):
+        for r in ROIList:
+            darr = np.zeros(self.ctObject.quantitiesOfInterest[0].array.shape) 
+            for i in range(self.ctObject.quantitiesOfInterest[0].array.shape[0]):
+                if (i % 30) == 0:
+                    prog = i/self.ctObject.quantitiesOfInterest[0].array.shape[0]*100 
+                    print("Calculating EUD for " + r +  "... (" + str(round(prog,1))+"%)")
+                for j in range(self.ctObject.quantitiesOfInterest[0].array.shape[1]): 
+                    for k in range(self.ctObject.quantitiesOfInterest[0].array.shape[2]):
+                        if self.ctObject.structures3D[r][i,j,k] == True:
+                            darr[i,j,k] = self.ctObject.quantitiesOfInterest[0].array[i,j,k]   
+            sum = 0
+            if r == 'Liver' or r == 'Lung_L' or r == 'Lung_R':
+                Alpha_ROI = Alpha_Normal
+            elif r == 'Right Tumor(s)' or r == 'Left Tumor(s)' or r == 'All Tumors (Right Lobe)' or r == 'All Tumors (Left Lobe)':
+                Alpha_ROI = Alpha_TLiver
+            else:
+                print('ROI type:' + r + ' not recognized')
+                Alpha_ROI = Alpha_Normal    
+            for i in range(darr.shape[0]):
+                for j in range(darr.shape[1]): 
+                    for k in range(darr.shape[2]):
+                        if darr[i,j,k] > 0:
+                            sum += math.exp(-Alpha_ROI * darr[i,j,k])   
+            N = (self.ctObject.structures3D[r]).sum()
+            EUD = -1/Alpha_Normal * np.log(sum / N)
+            MEAN = np.sum(darr) / N
+            RATIO = EUD/MEAN
+            if CreateFile == True:
+                if ROIList.index(r) == 0:
+                    f = open(self.basepath + 'EUDData_' + self.dosefilename + '.txt', 'w+')
+                    f.write(("EUD Data for " + self.dosefilename + "\n\n    EUD for " + r + " = {} " + self.unit + "\n    Mean Dose for " + r + " = {} " + self.unit + "\n    EUD relative to Mean Dose for " + r + " = {} \n\n").format(EUD, MEAN, RATIO))
+                else:
+                    f = open(self.basepath + 'EUDData_' + self.dosefilename + '.txt', 'a+')
+                    f.write(("    EUD for " + r + " = {} " + self.unit + "\n    Mean Dose for " + r + " = {} " + self.unit + "\n    EUD relative to Mean Dose for " + r + " = {} \n\n").format(EUD, MEAN, RATIO))
+            print(("EUD for " + r + " = {} " + self.patientObject.dcmFileChosen.DoseUnits).format(EUD))
+            print(("Mean Dose for " + r + " = {} " + self.patientObject.dcmFileChosen.DoseUnits).format(MEAN))
+            print(("EUD relative to Mean Dose for " + r + " = {}").format(RATIO))
 
 class DVH:
     def __init__(self, basepath, dosefile):
@@ -178,4 +218,3 @@ class DVH:
         plt.savefig(self.basepath + 'DVH_' + self.dosefilename + '.png')
         plt.savefig(self.basepath + 'DVH_' + self.dosefilename + '.jpg')
         plt.show()
-
