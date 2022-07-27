@@ -38,7 +38,7 @@ class BioeffectCalculator(dcmpat.PatientCT):
             print('RTSTRUCT_LUNGSANDLIVER loaded instead.')
         print("ROI's identified:", list(self.ctObject.structures3D.keys()))
         self.BEDimg3D = np.zeros(self.ctObject.img3D.shape)
-        
+        self.ConvertDoseUnits()
 
     def BEDCalculator(self):
         if self.unit == "Gy/GBq" and str(self.patientObject.dcmFileChosen.DoseUnits) == "Gy/mCi" :
@@ -157,6 +157,20 @@ class BioeffectCalculator(dcmpat.PatientCT):
             print(("Mean Dose for " + r + " = {} " + self.patientObject.dcmFileChosen.DoseUnits).format(MEAN))
             print(("EUD relative to Mean Dose for " + r + " = {}").format(RATIO))
 
+    def ConvertDoseUnits(self, seriesdescription = None)
+        if self.unit == "Gy/GBq" and str(self.patientObject.dcmFileChosen.DoseUnits) == "Gy/mCi" :
+            self.ctObject.quantitiesOfInterest[0].array = 27.027 * self.ctObject.quantitiesOfInterest[0].array
+            unitabbr = "GyGBq"
+        elif self.unit == "Gy/mCi" and str(self.patientObject.dcmFileChosen.DoseUnits) == "Gy/GBq":
+            self.ctObject.quantitiesOfInterest[0].array = self.ctObject.quantitiesOfInterest[0].array / 27.027
+            unitabbr = "GymCi"
+        else:
+            return
+        if seriesdescription == None:
+            seriesdescription = self.dosefilename + "_" + unitabbr
+        name = self.dosefilename + '_' + unitabbr '.dcm'
+        self.ctObject.WriteRTDose(self.ctObject.quantitiesOfInterest[0].array, self.basepath + name, self.unit, seriesdescription)
+            
 class DVH:
     def __init__(self, basepath, dosefile):
         ctpath = basepath + '/CT/'
