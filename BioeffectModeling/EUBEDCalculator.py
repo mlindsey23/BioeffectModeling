@@ -152,7 +152,7 @@ class BioeffectCalculator(dcmpat.PatientCT):
             print(("Mean Dose for " + r + " = {} " + self.patientObject.dcmFileChosen.DoseUnits).format(MEAN))
             print(("EUD relative to Mean Dose for " + r + " = {}").format(RATIO))
 
-    def ConvertDoseUnits(self, seriesdescription = None)
+    def ConvertDoseUnits(self, seriesdescription = None):
         if self.unit == "Gy/GBq" and str(self.patientObject.dcmFileChosen.DoseUnits) == "Gy/mCi" :
             self.ctObject.quantitiesOfInterest[0].array = 27.027 * self.ctObject.quantitiesOfInterest[0].array
             unitabbr = "GyGBq"
@@ -163,7 +163,7 @@ class BioeffectCalculator(dcmpat.PatientCT):
             return
         if seriesdescription == None:
             seriesdescription = self.dosefilename + "_" + unitabbr
-        name = self.dosefilename + '_' + unitabbr '.dcm'
+        name = self.dosefilename + '_' + unitabbr + '.dcm'
         self.ctObject.WriteRTDose(self.ctObject.quantitiesOfInterest[0].array, self.basepath + name, self.unit, seriesdescription)
             
 class DVH:
