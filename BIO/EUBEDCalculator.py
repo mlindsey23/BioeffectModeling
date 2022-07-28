@@ -34,7 +34,7 @@ class EUBEDCalculator(dcmpat.PatientCT):
             structfile = os.listdir(basepath + '/RTSTRUCT_LUNGSANDLIVER/')
             structpath = basepath + '/RTSTRUCT_LUNGSANDLIVER/' + structfile[0]
             self.ctObject.LoadStructures(structpath)
-            print('ERROR: Could not load complete RTSTRUCT. CODE:', e)
+            print('ERROR: Could not load complete RTSTRUCT \n    CODE:', e)
             print('RTSTRUCT_LUNGSANDLIVER loaded instead.')
         self.STRUCT_ROIs = list(self.ctObject.structures3D.keys())
         print("ROI's identified:", self.STRUCT_ROIs)
