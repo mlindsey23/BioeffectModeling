@@ -13,7 +13,7 @@ import pydicom
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import simpson
-from BioeffectCalculator.DICOM_RT import DicomPatient as dcmpat
+from BioeffectModeling.DICOM_RT import DicomPatient as dcmpat
 
 
 class DVH:
