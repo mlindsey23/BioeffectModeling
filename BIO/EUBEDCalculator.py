@@ -13,7 +13,7 @@ from scipy.integrate import simpson
 from BioeffectCalculator.DICOM_RT import DicomPatient as dcmpat
 from BioeffectCalculator.BIO.ROI_Values import *
     
-class BioeffectCalculator(dcmpat.PatientCT):
+class EUBEDCalculator(dcmpat.PatientCT):
     def __init__(self, basepath, dosefile, unit = "Gy/GBq"):
         self.unit = unit
         ctpath = basepath + '/CT/'
