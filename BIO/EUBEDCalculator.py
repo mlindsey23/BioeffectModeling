@@ -14,8 +14,10 @@ from BioeffectModeling.DICOM_RT import DicomPatient as dcmpat
 from BioeffectModeling.BIO.ROI_Values import *
     
 class EUBEDCalculator(dcmpat.PatientCT):
-    def __init__(self, basepath, dosefile, unit = "Gy/GBq"):
+    def __init__(self, basepath, dosefile, unit = "Gy/GBq", multiplier = None):
         self.unit = unit
+        if multiplier != None:
+            self.multiplier = multiplier
         ctpath = basepath + '/CT/'
         dosepath = basepath + dosefile
         dosefile_full = os.path.basename(dosefile)
@@ -166,6 +168,8 @@ class EUBEDCalculator(dcmpat.PatientCT):
             unitabbr = "GymCi"
         else:
             return
+        if self.multiplier != None:
+            self.ctObject.quantitiesOfInterest[0].array = self.multiplier * self.ctObject.quantitiesOfInterest[0].array
         if seriesdescription == None:
             seriesdescription = self.dosefilename + "_" + unitabbr
         name = self.dosefilename + '_' + unitabbr + '.dcm'
