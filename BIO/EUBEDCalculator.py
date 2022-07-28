@@ -34,10 +34,15 @@ class EUBEDCalculator(dcmpat.PatientCT):
             structfile = os.listdir(basepath + '/RTSTRUCT_LUNGSANDLIVER/')
             structpath = basepath + '/RTSTRUCT_LUNGSANDLIVER/' + structfile[0]
             self.ctObject.LoadStructures(structpath)
-            print('ERROR: Could not load complete RTSTRUCT \n    CODE:', e)
+            print('ERROR: Could not load complete RTSTRUCT. CODE:', e)
             print('RTSTRUCT_LUNGSANDLIVER loaded instead.')
-        self.STRUCT_ROIs = list(self.ctObject.structures3D.keys())
-        print("ROI's identified:", self.STRUCT_ROIs)
+        self.ROIs = list(self.ctObject.structures3D.keys())
+        print("ROI's identified:", self.ROIs)
+        self.TUMORS = []
+        for STRUCT in self.ROIs:
+            if 'Tumor' in STRUCT:
+                self.TUMORS.append(STRUCT)
+        print("Tumor STRUCTS identified:", self.TUMORS)
         self.BEDimg3D = np.zeros(self.ctObject.img3D.shape)
         self.ConvertDoseUnits()
 
@@ -48,26 +53,26 @@ class EUBEDCalculator(dcmpat.PatientCT):
                 print("Calculating BED... (" + str(round(prog,1))+"%)")
             else:
                 pass
-            for j in range(self.ctObject.quantitiesOfInterest[0].array.shape[1]): 
+            for j in range(self.ctObject.quantitiesOfInterest[0].array.shape[1]):
                 for k in range(self.ctObject.quantitiesOfInterest[0].array.shape[2]):
                     if self.ctObject.structures3D['Liver'][i,j,k] == True :
-                        try:
-                            if self.ctObject.structures3D['Right Tumor(s)'][i,j,k] == True or self.ctObject.structures3D['Left Tumor(s)'][i,j,k] == True or self.ctObject.structures3D['All Tumors (Left Lobe)'][i,j,k] == True or self.ctObject.structures3D['All Tumors (Right Lobe)'][i,j,k] == True or self.ctObject.structures3D['Tumor 1'][i,j,k] == True or self.ctObject.structures3D['Tumor 2'][i,j,k] == True or self.ctObject.structures3D['Tumor 3'][i,j,k] == True:
+                        for t in self.TUMORS:
+                            if self.ctObject.structures3D[t][i,j,k] == True:
                                 Trep = Trep_Tumor
                                 AlphaBeta = AlphaBeta_TLiver
+                                break
                             else:
                                 Trep = Trep_Normal
                                 AlphaBeta = AlphaBeta_NLiver
-                        except:
-                            Trep = Trep_Normal
-                            AlphaBeta = AlphaBeta_NLiver
                     elif self.ctObject.structures3D['Lung_L'][i,j,k] == True or self.ctObject.structures3D['Lung_R'][i,j,k] == True :
                         Trep = Trep_Normal
                         AlphaBeta = AlphaBeta_NLung
                     else :
                         Trep = Trep_Normal
-                        AlphaBeta = AlphaBeta_Standard      
+                        AlphaBeta = AlphaBeta_Standard
                     self.BEDimg3D[i,j,k] = self.ctObject.quantitiesOfInterest[0].array[i,j,k] * (1 + (( self.ctObject.quantitiesOfInterest[0].array[i,j,k] * Trep) / (AlphaBeta * (Trep + RadionuclideHalfLife))))
+
+
                                         
     def WriteRTDoseBED(self, seriesdescription = None):
         if seriesdescription == None:
@@ -77,28 +82,28 @@ class EUBEDCalculator(dcmpat.PatientCT):
 
     def EUBED(self, ROIList, CreateFile):
         for r in ROIList:
-            darr = np.zeros(self.BEDimg3D.shape) 
+            darr = np.zeros(self.BEDimg3D.shape)
             for i in range(self.BEDimg3D.shape[0]):
                 if (i % 30) == 0:
-                    prog = i/self.BEDimg3D.shape[0]*100 
+                    prog = i/self.BEDimg3D.shape[0]*100
                     print("Calculating EUBED for " + r +  "... (" + str(round(prog,1))+"%)")
-                for j in range(self.BEDimg3D.shape[1]): 
+                for j in range(self.BEDimg3D.shape[1]):
                     for k in range(self.BEDimg3D.shape[2]):
                         if self.ctObject.structures3D[r][i,j,k] == True:
-                            darr[i,j,k] = self.BEDimg3D[i,j,k]   
+                            darr[i,j,k] = self.BEDimg3D[i,j,k]
             sum = 0
-            if r == 'Liver' or r == 'Lung_L' or r == 'Lung_R':
+            if r not in self.TUMORS:
                 Alpha_ROI = Alpha_Normal
-            elif r == 'Right Tumor(s)' or r == 'Left Tumor(s)' or r == 'All Tumors (Right Lobe)' or r == 'All Tumors (Left Lobe)' or r == 'Tumor 1' or r == 'Tumor 2' or r == 'Tumor 3':
+            elif r in self.TUMORS:
                 Alpha_ROI = Alpha_TLiver
             else:
                 print('ROI type:' + r + ' not recognized')
-                Alpha_ROI = Alpha_Normal    
+                Alpha_ROI = Alpha_Normal
             for i in range(darr.shape[0]):
-                for j in range(darr.shape[1]): 
+                for j in range(darr.shape[1]):
                     for k in range(darr.shape[2]):
                         if darr[i,j,k] > 0:
-                            sum += math.exp(-Alpha_ROI * darr[i,j,k])   
+                            sum += math.exp(-Alpha_ROI * darr[i,j,k])
             N = (self.ctObject.structures3D[r]).sum()
             EUBED = -1/Alpha_Normal * np.log(sum / N)
             MEAN = np.sum(darr) / N
@@ -116,28 +121,28 @@ class EUBEDCalculator(dcmpat.PatientCT):
     
     def EUD(self, ROIList, CreateFile):
         for r in ROIList:
-            darr = np.zeros(self.ctObject.quantitiesOfInterest[0].array.shape) 
+            darr = np.zeros(self.ctObject.quantitiesOfInterest[0].array.shape)
             for i in range(self.ctObject.quantitiesOfInterest[0].array.shape[0]):
                 if (i % 30) == 0:
-                    prog = i/self.ctObject.quantitiesOfInterest[0].array.shape[0]*100 
+                    prog = i/self.ctObject.quantitiesOfInterest[0].array.shape[0]*100
                     print("Calculating EUD for " + r +  "... (" + str(round(prog,1))+"%)")
-                for j in range(self.ctObject.quantitiesOfInterest[0].array.shape[1]): 
+                for j in range(self.ctObject.quantitiesOfInterest[0].array.shape[1]):
                     for k in range(self.ctObject.quantitiesOfInterest[0].array.shape[2]):
                         if self.ctObject.structures3D[r][i,j,k] == True:
-                            darr[i,j,k] = self.ctObject.quantitiesOfInterest[0].array[i,j,k]   
+                            darr[i,j,k] = self.ctObject.quantitiesOfInterest[0].array[i,j,k]
             sum = 0
-            if r == 'Liver' or r == 'Lung_L' or r == 'Lung_R':
+            if r not in self.TUMORS:
                 Alpha_ROI = Alpha_Normal
-            elif r == 'Right Tumor(s)' or r == 'Left Tumor(s)' or r == 'All Tumors (Right Lobe)' or r == 'All Tumors (Left Lobe)':
+            elif r in self.TUMORS:
                 Alpha_ROI = Alpha_TLiver
             else:
                 print('ROI type:' + r + ' not recognized')
-                Alpha_ROI = Alpha_Normal    
+                Alpha_ROI = Alpha_Normal
             for i in range(darr.shape[0]):
-                for j in range(darr.shape[1]): 
+                for j in range(darr.shape[1]):
                     for k in range(darr.shape[2]):
                         if darr[i,j,k] > 0:
-                            sum += math.exp(-Alpha_ROI * darr[i,j,k])   
+                            sum += math.exp(-Alpha_ROI * darr[i,j,k])
             N = (self.ctObject.structures3D[r]).sum()
             EUD = -1/Alpha_Normal * np.log(sum / N)
             MEAN = np.sum(darr) / N
@@ -152,6 +157,8 @@ class EUBEDCalculator(dcmpat.PatientCT):
             print(("EUD for " + r + " = {} " + self.patientObject.dcmFileChosen.DoseUnits).format(EUD))
             print(("Mean Dose for " + r + " = {} " + self.patientObject.dcmFileChosen.DoseUnits).format(MEAN))
             print(("EUD relative to Mean Dose for " + r + " = {}").format(RATIO))
+
+
 
     def ConvertDoseUnits(self, seriesdescription = None):
         if self.unit == "Gy/GBq" and str(self.patientObject.dcmFileChosen.DoseUnits) == "Gy/mCi" :
