@@ -19,8 +19,7 @@ ROIList = ['Liver', 'Lung_L', 'Lung_R']
 
 
 ### Main Script ###
-calc = BioeffectCalculator(basepath, dosefile, unit)
+calc = EUBEDCalculator(basepath, dosefile, unit)
 calc.BEDCalculator()    
 calc.WriteRTDoseBED()
-
-calc.EUBEDCalculator(ROIList, CreateFile)
+calc.EUBED(ROIList, CreateFile)
