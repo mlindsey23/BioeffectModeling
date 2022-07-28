@@ -10,8 +10,8 @@ import pydicom
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import simpson
-from BioeffectCalculator.DICOM_RT import DicomPatient as dcmpat
-from BioeffectCalculator.BIO.ROI_Values import *
+from BioeffectModeling.DICOM_RT import DicomPatient as dcmpat
+from BioeffectModeling.BIO.ROI_Values import *
     
 class EUBEDCalculator(dcmpat.PatientCT):
     def __init__(self, basepath, dosefile, unit = "Gy/GBq"):
