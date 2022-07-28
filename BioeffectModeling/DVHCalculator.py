@@ -7,6 +7,16 @@ Output -> Matplotlib Plot of DVH curves (saved in png and jpg), DVH points (save
 
 '''
 
+import math
+import os
+import pydicom
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.integrate import simpson
+from MIRDCalculation_BED.DICOM_RT import DicomPatient as dcmpat
+from MIRDCalculation_BED.BioeffectModeling.ROI_Values import *
+
+
 class DVH:
     def __init__(self, basepath, dosefile):
         ctpath = basepath + '/CT/'
