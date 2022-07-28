@@ -71,7 +71,8 @@ class EUBEDCalculator(dcmpat.PatientCT):
                         Trep = Trep_Normal
                         AlphaBeta = AlphaBeta_Standard
                     self.BEDimg3D[i,j,k] = self.ctObject.quantitiesOfInterest[0].array[i,j,k] * (1 + (( self.ctObject.quantitiesOfInterest[0].array[i,j,k] * Trep) / (AlphaBeta * (Trep + RadionuclideHalfLife))))
-                                  
+        print('BED Calculated.')
+        
     def WriteRTDoseBED(self, seriesdescription = None):
         if seriesdescription == None:
             seriesdescription = 'BED_' + self.dosefilename
