@@ -74,7 +74,7 @@ class EUBEDCalculator(dcmpat.PatientCT):
         name = 'BED_' + self.dosefilename + '.dcm'
         self.ctObject.WriteRTDose(self.BEDimg3D, self.basepath + name, self.unit, seriesdescription)
 
-    def EUBEDCalculator(self, ROIList, CreateFile):
+    def EUBED(self, ROIList, CreateFile):
         for r in ROIList:
             darr = np.zeros(self.BEDimg3D.shape) 
             for i in range(self.BEDimg3D.shape[0]):
@@ -113,7 +113,7 @@ class EUBEDCalculator(dcmpat.PatientCT):
             print(("Mean Dose for " + r + " = {} " + self.patientObject.dcmFileChosen.DoseUnits).format(MEAN))
             print(("EUBED relative to Mean Dose for " + r + " = {}").format(RATIO))
     
-    def EUDCalculator(self, ROIList, CreateFile):
+    def EUD(self, ROIList, CreateFile):
         for r in ROIList:
             darr = np.zeros(self.ctObject.quantitiesOfInterest[0].array.shape) 
             for i in range(self.ctObject.quantitiesOfInterest[0].array.shape[0]):
