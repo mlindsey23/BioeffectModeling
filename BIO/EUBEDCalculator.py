@@ -36,7 +36,8 @@ class EUBEDCalculator(dcmpat.PatientCT):
             self.ctObject.LoadStructures(structpath)
             print('ERROR: Could not load complete RTSTRUCT. CODE:', e)
             print('RTSTRUCT_LUNGSANDLIVER loaded instead.')
-        print("ROI's identified:", list(self.ctObject.structures3D.keys()))
+        self.STRUCT_ROIs = list(self.ctObject.structures3D.keys())
+        print("ROI's identified:", self.STRUCT_ROIs)
         self.BEDimg3D = np.zeros(self.ctObject.img3D.shape)
         self.ConvertDoseUnits()
 
