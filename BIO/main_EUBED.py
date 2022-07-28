@@ -1,4 +1,4 @@
-from MIRDCalculation_BED.BioeffectModeling.EUBEDCalculator import *
+from BioeffectModeling.BIO.EUBEDCalculator import *
 
 
 ### USER PARAMETERS ###
