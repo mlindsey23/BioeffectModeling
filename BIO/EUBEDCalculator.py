@@ -71,9 +71,7 @@ class EUBEDCalculator(dcmpat.PatientCT):
                         Trep = Trep_Normal
                         AlphaBeta = AlphaBeta_Standard
                     self.BEDimg3D[i,j,k] = self.ctObject.quantitiesOfInterest[0].array[i,j,k] * (1 + (( self.ctObject.quantitiesOfInterest[0].array[i,j,k] * Trep) / (AlphaBeta * (Trep + RadionuclideHalfLife))))
-
-
-                                        
+                                  
     def WriteRTDoseBED(self, seriesdescription = None):
         if seriesdescription == None:
             seriesdescription = 'BED_' + self.dosefilename
@@ -157,8 +155,6 @@ class EUBEDCalculator(dcmpat.PatientCT):
             print(("EUD for " + r + " = {} " + self.patientObject.dcmFileChosen.DoseUnits).format(EUD))
             print(("Mean Dose for " + r + " = {} " + self.patientObject.dcmFileChosen.DoseUnits).format(MEAN))
             print(("EUD relative to Mean Dose for " + r + " = {}").format(RATIO))
-
-
 
     def ConvertDoseUnits(self, seriesdescription = None):
         if self.unit == "Gy/GBq" and str(self.patientObject.dcmFileChosen.DoseUnits) == "Gy/mCi" :
