@@ -116,8 +116,8 @@ class EUBEDCalculator(dcmpat.PatientCT):
                 else:
                     f = open(self.basepath + 'EUBEDData_' + self.dosefilename + '.txt', 'a+')
                     f.write(("    EUBED for " + r + " = {} " + self.unit + "\n    Mean Dose for " + r + " = {} " + self.unit + "\n    EUBED relative to Mean Dose for " + r + " = {} \n\n").format(EUBED, MEAN, RATIO))
-            print(("EUBED for " + r + " = {} " + self.patientObject.dcmFileChosen.DoseUnits).format(EUBED))
-            print(("Mean Dose for " + r + " = {} " + self.patientObject.dcmFileChosen.DoseUnits).format(MEAN))
+            print(("EUBED for " + r + " = {} " + self.unit).format(EUBED))
+            print(("Mean Dose for " + r + " = {} " + self.unit).format(MEAN))
             print(("EUBED relative to Mean Dose for " + r + " = {}").format(RATIO))
     
     def EUD(self, ROIList, CreateFile):
@@ -155,8 +155,8 @@ class EUBEDCalculator(dcmpat.PatientCT):
                 else:
                     f = open(self.basepath + 'EUDData_' + self.dosefilename + '.txt', 'a+')
                     f.write(("    EUD for " + r + " = {} " + self.unit + "\n    Mean Dose for " + r + " = {} " + self.unit + "\n    EUD relative to Mean Dose for " + r + " = {} \n\n").format(EUD, MEAN, RATIO))
-            print(("EUD for " + r + " = {} " + self.patientObject.dcmFileChosen.DoseUnits).format(EUD))
-            print(("Mean Dose for " + r + " = {} " + self.patientObject.dcmFileChosen.DoseUnits).format(MEAN))
+            print(("EUD for " + r + " = {} " + self.unit).format(EUD))
+            print(("Mean Dose for " + r + " = {} " + self.unit).format(MEAN))
             print(("EUD relative to Mean Dose for " + r + " = {}").format(RATIO))
 
     def ConvertDoseUnits(self, seriesdescription = None):
@@ -166,7 +166,10 @@ class EUBEDCalculator(dcmpat.PatientCT):
         elif self.unit == "Gy/mCi" and str(self.patientObject.dcmFileChosen.DoseUnits) == "Gy/GBq":
             self.ctObject.quantitiesOfInterest[0].array = self.ctObject.quantitiesOfInterest[0].array / 27.027
             unitabbr = "GymCi"
+        elif self.unit == "Gy":
+            unitabbr = "Gy"
         else:
+            print("ERROR: Unit must be either 'Gy/mCi', 'Gy/GBq', or 'Gy'")
             return
         if self.maxvoxel != None:
             self.ctObject.quantitiesOfInterest[0].array = self.maxvoxel * self.ctObject.quantitiesOfInterest[0].array / self.ctObject.quantitiesOfInterest[0].array.max()
