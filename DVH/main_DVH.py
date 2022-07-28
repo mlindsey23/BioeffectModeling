@@ -1,4 +1,4 @@
-from BioeffectCalculator.BIO.EUBEDCalculator import *
+from BioeffectModeling.BIO.EUBEDCalculator import *
 
 
 ### USER PARAMETERS ###
